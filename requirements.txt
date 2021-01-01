@@ -1,0 +1,8 @@
+httpx
+fastapi
+mongoengine
+investpy
+pendulum
+pytest
+pytest-cov
+logger
