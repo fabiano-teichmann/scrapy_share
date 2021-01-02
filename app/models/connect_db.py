@@ -1,4 +1,4 @@
-import logger
+from logger import logger
 import mongoengine
 
 from app.settings import Settings

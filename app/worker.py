@@ -2,6 +2,7 @@ import investpy
 import pendulum
 
 from app.models.connect_db import connect_mongodb
+from app.models.model import Stock
 
 
 class GetShares:
@@ -12,12 +13,18 @@ class GetShares:
 
     def get_list_shares(self):
         shares_list = investpy.get_stocks_list(country=self.country)
+        Stock.objects(country=self.country).delete()
+        for share in shares_list:
+            Stock(symbol=share, country=self.country).save()
         return shares_list
 
-    def get_historical_data(self, share: str):
-        df = investpy.get_stock_historical_data(stock=share, country=self.country, from_date='01/01/2020',
+    def get_historical_data(self, share: str, from_date: str):
+        df = investpy.get_stock_historical_data(stock=share, country=self.country, from_date=from_date,
                                                 to_date=self.now, as_json=False, order='ascending')
 
+        rows = len(df.index)
+        for r in range(0, rows):
+            print(df['Open'][r])
         return df
 
     def get_recent_historical(self, share: str):
@@ -30,12 +37,3 @@ class GetShares:
             return profile['desc']
         else:
             return ""
-
-
-if __name__ == '__main__':
-    share = GetShares('brazil')
-    shares = share.get_list_shares()
-    print(shares)
-    profile = share.company_profile(shares[3])
-    recent_historical = share.get_recent_historical(shares[3])
-    historical_data = share.get_historical_data(shares[3])
