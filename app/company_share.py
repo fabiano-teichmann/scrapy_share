@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import pendulum
-from app.models.model import Company
+from app.models.model import Company, Share
 from app.worker import GetShares
 
 
@@ -11,41 +11,39 @@ class CompanyShare:
         self.share = GetShares(self.country)
         self.profile = self.share.company_profile(self.symbol)
 
-    def share(self):
+    def get_share(self):
         company = Company.objects(name=self.symbol).first()
-        if company:
-            date = company.updated_at + timedelta(days=1)
-            date = f'{date.days}/{date.month}/{date.year}'
-            historical_share = self.add_share(date)
-            data = {'name': self.symbol, 'description': self.profile,
-                    'share': historical_share, 'updated_at': historical_share[-1]['date']}
-            return Company(**data).save()
+        if company is None:
+            last_date = self.add_share('01/01/2000')
+            company.updated_at = last_date
+            company.save()
+
         else:
-            data = self.add_share('01/01/2000')
-            company.update(add_to_set__share=data)
+            date = company.updated_at + timedelta(days=1)
+            date = date.strftime("%d/%m/%Y")
+            last_date = self.add_share(date)
+            company.updated_at = last_date
+            company.save()
 
     def add_share(self, date: str):
-        historical_share = []
+        last_date = ''
         df = self.share.get_historical_data(self.symbol, date)
         rows = len(df.index)
         for r in range(0, rows):
-            historical_share.append({
+            Share(**{
+                'name': self.symbol,
                 'open': df['Open'][r],
                 'low': df['Low'][r],
                 'high': df['High'][r],
                 'close': df['Close'][r],
                 'date': df.index[r].date()
-            })
-
-        return historical_share
+            }).save()
+            last_date = df.index[r].date()
+        return last_date
 
 
 if __name__ == '__main__':
     share = GetShares('brazil').get_list_shares()
-
     company = CompanyShare(share[1], 'brazil')
-    company.add_share()
-    # shares = share.get_list_shares()
-    # profile = share.company_profile(shares[3])
-    # historical_data = share.get_historical_data(shares[3])
-    # recent_historical = share.get_recent_historical(shares[3])
+    company.get_share()
+

@@ -2,7 +2,7 @@ import investpy
 import pendulum
 
 from app.models.connect_db import connect_mongodb
-from app.models.model import Stock
+from app.models.model import Company
 
 
 class GetShares:
@@ -13,9 +13,9 @@ class GetShares:
 
     def get_list_shares(self):
         shares_list = investpy.get_stocks_list(country=self.country)
-        Stock.objects(country=self.country).delete()
+        Company.objects(country=self.country).delete()
         for share in shares_list:
-            Stock(symbol=share, country=self.country).save()
+            Company(name=share, country=self.country).save()
         return shares_list
 
     def get_historical_data(self, share: str, from_date: str):
