@@ -1,5 +1,8 @@
-from datetime import datetime, timedelta
-import pendulum
+from datetime import timedelta
+from datetime import date
+from logger import logger
+
+from app.models.connect_db import connect_mongodb
 from app.models.model import Company, Share
 from app.worker import GetShares
 
@@ -9,24 +12,33 @@ class CompanyShare:
         self.symbol = symbol
         self.country = country
         self.share = GetShares(self.country)
-        self.profile = self.share.company_profile(self.symbol)
+        self.today = date.today()
 
     def get_share(self):
         company = Company.objects(name=self.symbol).first()
         if company is None:
-            last_date = self.add_share('01/01/2000')
-            company.updated_at = last_date
-            company.save()
-
+            profile = self.share.company_profile(self.symbol)
+            last_date, currency = self.add_share('01/01/2000')
+            Company(name=self.symbol, description=profile,
+                    updated_at=last_date,
+                    country=self.country,
+                    currency=currency).save()
+            logger.info(f"New Company {self.symbol} add")
         else:
             date = company.updated_at + timedelta(days=1)
-            date = date.strftime("%d/%m/%Y")
-            last_date = self.add_share(date)
-            company.updated_at = last_date
-            company.save()
+            if date > self.today:
+                date = date.strftime("%d/%m/%Y")
+                last_date, currency = self.add_share(date)
+                company.updated_at = last_date
+                company.save()
+                logger.info(f"Share company {self.symbol} updated")
+            else:
+                logger.info(f'Share company {self.symbol} Already updated ')
 
     def add_share(self, date: str):
+
         last_date = ''
+        currency = ''
         df = self.share.get_historical_data(self.symbol, date)
         rows = len(df.index)
         for r in range(0, rows):
@@ -39,11 +51,16 @@ class CompanyShare:
                 'date': df.index[r].date()
             }).save()
             last_date = df.index[r].date()
-        return last_date
+            currency = df['Currency'][r]
+
+        logger.info(f"Add share for company {self.symbol} total register insert {rows}")
+        return last_date, currency
 
 
 if __name__ == '__main__':
-    share = GetShares('brazil').get_list_shares()
-    company = CompanyShare(share[1], 'brazil')
-    company.get_share()
+    connect_mongodb()
+    shares = GetShares('brazil').get_list_shares()
+    for share in shares:
+        company = CompanyShare(share, 'brazil')
+        company.get_share()
 

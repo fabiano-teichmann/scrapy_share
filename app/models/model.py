@@ -1,13 +1,10 @@
-from datetime import datetime
-
-from mongoengine import Document, StringField, FloatField, \
-    DateTimeField, ReferenceField
+from mongoengine import Document, StringField, FloatField, DateField
 
 
 class Company(Document):
     name = StringField(required=True)
     description = StringField(required=False, default='')
-    updated_at = DateTimeField(required=False)
+    updated_at = DateField(required=False)
     country = StringField()
     currency = StringField()
 
@@ -21,7 +18,7 @@ class Company(Document):
 
 class Share(Document):
     name = StringField(required=True)
-    date = DateTimeField(required=True)
+    date = DateField(required=True)
     open = FloatField(required=True)
     low = FloatField(required=True)
     high = FloatField(required=True)
