@@ -1,5 +1,7 @@
 from datetime import timedelta
 from datetime import date
+from time import sleep
+
 from logger import logger
 
 from app.models.connect_db import connect_mongodb
@@ -58,9 +60,15 @@ class CompanyShare:
 
 
 if __name__ == '__main__':
+    stop = 10
+    count = 0
     connect_mongodb()
     shares = GetShares('brazil').get_list_shares()
     for share in shares:
         company = CompanyShare(share, 'brazil')
         company.get_share()
-
+        count += 1
+        if count >= stop:
+            logger.info(f"Stop consumer API for 30 seg total register inserted: {count} total break {int(stop/10)}")
+            stop = stop + 10 if stop == count else stop
+            sleep(30)
