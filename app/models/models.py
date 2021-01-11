@@ -1,12 +1,19 @@
-from mongoengine import Document, StringField, FloatField, DateField
+from mongoengine import Document, StringField, FloatField, DateField, queryset_manager, signals
 
 
-class Company(Document):
+class CompanyModel(Document):
     name = StringField(required=True)
     description = StringField(required=False, default='')
     updated_at = DateField(required=False)
     country = StringField()
     currency = StringField()
+
+    @queryset_manager
+    def get_company(doc_cls, queryset, name):
+        return queryset(name=name).first()
+
+    def save(self, *args, **kwargs):
+        return super(CompanyModel, self).save()
 
     meta = {
         'collection': 'company',
@@ -16,7 +23,12 @@ class Company(Document):
     }
 
 
-class Share(Document):
+def update_date(model, updated_at):
+    model.update_at = updated_at
+    return model.update()
+
+
+class ShareModel(Document):
     name = StringField(required=True)
     date = DateField(required=True)
     open = FloatField(required=True)

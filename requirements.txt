@@ -6,3 +6,4 @@ pendulum
 pytest
 pytest-cov
 logger
+pydantic
