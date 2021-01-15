@@ -7,3 +7,5 @@ pytest
 pytest-cov
 logger
 pydantic
+mongomock
+testfixtures

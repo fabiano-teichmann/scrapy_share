@@ -6,14 +6,17 @@ from app.models.validator import CompanyValidator
 
 
 class Company:
-    def __init__(self):
+    def __init__(self, name):
         self.model = CompanyModel
+        self.name = name
+        self.company = self._get_company()
 
     def save(self, data: dict):
+        data.update({'name': self.name})
         payload = self._validator_data(data)
         if payload:
             try:
-                return self.model(**data).save
+                return self.model(**data).save()
             except Exception as e:
                 logger.error(f'Something unexpected happened in try save bd {e.args}')
                 raise e
@@ -33,5 +36,5 @@ class Company:
             logger.error(f'Data is not valid - {data}')
             return {}
 
-    def get_company(self, name: str):
-        return self.model.get_company(name)
+    def _get_company(self):
+        return self.model.get_company(self.name)
