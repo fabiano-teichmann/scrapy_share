@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, FloatField, DateField, queryset_manager, signals
+from mongoengine import Document, StringField, FloatField, DateField, queryset_manager
 
 
 class CompanyModel(Document):

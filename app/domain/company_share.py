@@ -33,26 +33,26 @@ class CompanyShare:
                 return 1
             else:
                 date = company.company.updated_at + timedelta(days=1)
-                if date < self.today:
-                    date = date.strftime("%d/%m/%Y")
-                    last_date, currency = self.add_share(date)
-                    company.update_company(company.company, last_date)
-                    logger.info(f"Share company {self.symbol} updated")
-                    return 1
-                else:
-                    logger.info(f'Share company {self.symbol} Already updated')
-                    return 0
+                last_date, currency = self.update_share(date)
+                company.update_company(company.company, last_date)
+                return 1 if currency else 0
         except Exception as e:
             logger.error(f"Something unexpected happened  - {e.args}")
             raise e
 
-    def add_share(self, date: str):
-        try:
-            last_date = ''
-            currency = ''
+    def update_share(self, date: date):
+
+        if date < self.today:
+            date = date.strftime("%d/%m/%Y")
             df = self.share.get_historical_data(self.symbol, date)
-            rows = len(df.index)
-            for r in range(0, rows):
+            return self.save_share(df, len(df.index))
+        else:
+            logger.info(f'Share company {self.symbol} Already updated')
+            return False
+
+    def save_share(self, df, total_row):
+        try:
+            for r in range(0, total_row):
                 ShareModel(**{
                     'name': self.symbol,
                     'open': df['Open'][r],
@@ -63,9 +63,20 @@ class CompanyShare:
                 }).save()
                 last_date = df.index[r].date()
                 currency = df['Currency'][r]
-
-            logger.info(f"Add share for company {self.symbol} total register insert {rows}")
+            logger.info(f"Add share for company {self.symbol} total register insert {total_row}")
             return last_date, currency
+        except Exception as e:
+            logger.error(f"Something unexpected happened in save share company {self.symbol} \n  error {e.args}")
+            return False, False
+
+    def add_share(self, date: str):
+        try:
+            df = self.share.get_historical_data(self.symbol, date)
+            total_row = len(df.index)
+            if total_row > 60:
+                last_date, currency = self.save_share(df, total_row)
+                return last_date, currency
+            return False, False
         except Exception as e:
             logger.error(f"Something unexpected happened in get share company {self.symbol} \n  error {e.args}")
             return False, False
