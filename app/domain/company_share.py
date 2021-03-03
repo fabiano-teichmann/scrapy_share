@@ -1,6 +1,7 @@
 from datetime import date
 from datetime import timedelta
 
+from googletrans import Translator
 from logger import logger
 
 from app.domain.company import Company
@@ -17,6 +18,16 @@ class CompanyShare:
         self.date_start = date_start
         self.share = GetShares(self.country)
         self.today = date.today()
+        self.translator = Translator()
+
+    def _translate_description(self, text: str, language='pt'):
+        try:
+            if text:
+                return self.translator.translate(text=text, dest=language).text
+            return ''
+        except Exception as e:
+            logger.error(f"Something unexpected happened in translate ERROR: {e}")
+            return ''
 
     def get_share(self):
         try:
@@ -26,15 +37,18 @@ class CompanyShare:
                 profile = self.share.company_profile(self.symbol)
                 if profile:
                     last_date, currency = self.add_share(self.date_start)
+                    first_date = ShareModel.objects(name=self.symbol).first()
                     if last_date:
-                        company.save({'description':  profile, 'updated_at': last_date,
-                                      'country': self.country, 'currency': currency})
+                        company.save({'description':  profile, 'updated_at': last_date, 'country': self.country,
+                                      'description_pt': self._translate_description(profile), 'currency': currency,
+                                      'initial_date': first_date.date})
                         logger.info(f"New Company {self.symbol} add")
                 return 1
             else:
                 date = company.company.updated_at + timedelta(days=1)
                 last_date, currency = self.update_share(date)
-                company.update_company(company.company, last_date)
+                first_date = ShareModel.objects(name=self.symbol).first()
+                company.update_company(company.company, last_date, first_date.date)
                 return 1 if currency else 0
         except Exception as e:
             logger.error(f"Something unexpected happened  - {e.args}")
@@ -44,11 +58,15 @@ class CompanyShare:
 
         if date < self.today:
             date = date.strftime("%d/%m/%Y")
-            df = self.share.get_historical_data(self.symbol, date)
+            try:
+                df = self.share.get_historical_data(self.symbol, date)
+            except Exception as e:
+                logger.error(f"Something unexpected happened : {e}")
+                return False, False
             return self.save_share(df, len(df.index))
         else:
             logger.info(f'Share company {self.symbol} Already updated')
-            return False
+            return False, False
 
     def save_share(self, df, total_row):
         try:
@@ -58,6 +76,7 @@ class CompanyShare:
                     'open': df['Open'][r],
                     'low': df['Low'][r],
                     'high': df['High'][r],
+                    'average': round((df['Low'][r] + df['High'][r]) / 2, 2),
                     'close': df['Close'][r],
                     'date': df.index[r].date()
                 }).save()

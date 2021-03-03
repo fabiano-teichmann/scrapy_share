@@ -24,8 +24,8 @@ class Company:
             return False
 
     @staticmethod
-    def update_company(model: CompanyModel, last_date):
-        return update_date(model, last_date)
+    def update_company(model: CompanyModel, last_date, first_date):
+        return update_date(model, last_date, first_date)
 
     @staticmethod
     def _validator_data(data: dict) -> dict:

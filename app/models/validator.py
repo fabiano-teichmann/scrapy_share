@@ -9,6 +9,7 @@ class ShareValidator(BaseModel):
     low: float
     high: float
     close: float
+    average: float
 
 
 class CompanyValidator(BaseModel):
@@ -17,6 +18,7 @@ class CompanyValidator(BaseModel):
     updated_at: date
     country: str
     currency: str
+    initial_date: date
 
     @validator('country', check_fields=False)
     def capitalize(cls, v):

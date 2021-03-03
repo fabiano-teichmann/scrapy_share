@@ -9,3 +9,4 @@ logger
 pydantic
 mongomock
 testfixtures
+googletrans-3.1.0a0

@@ -2,9 +2,11 @@ from mongoengine import Document, StringField, FloatField, DateField, queryset_m
 
 
 class CompanyModel(Document):
-    name = StringField(required=True)
+    name = StringField(required=True, unique=True)
     description = StringField(required=False, default='')
+    description_pt = StringField(required=False, default='')
     updated_at = DateField(required=False)
+    initial_date = DateField(required=False)
     country = StringField()
     currency = StringField()
 
@@ -23,9 +25,10 @@ class CompanyModel(Document):
     }
 
 
-def update_date(model, updated_at):
+def update_date(model, updated_at, first_date):
     model.update_at = updated_at
-    return model.update()
+    model.initial_date = first_date
+    return model.save()
 
 
 class ShareModel(Document):
@@ -35,6 +38,7 @@ class ShareModel(Document):
     low = FloatField(required=True)
     high = FloatField(required=True)
     close = FloatField(required=True)
+    average = FloatField(required=True)
 
     meta = {
         'collection': 'share',
