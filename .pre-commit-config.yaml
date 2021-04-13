@@ -5,7 +5,7 @@ repos:
         - id: update requirements
           name: update requirements
           entry:  python -m pip install --upgrade -r requirements.txt
-          language: system
+          language: python
           always_run: true
           pass_filenames: false
           stages: ["push"]
