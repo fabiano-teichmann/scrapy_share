@@ -10,3 +10,5 @@ pydantic
 mongomock
 testfixtures
 googletrans-3.1.0a0
+grpcio
+grpcio-tools
