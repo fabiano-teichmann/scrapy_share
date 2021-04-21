@@ -9,6 +9,7 @@ logger
 pydantic
 mongomock
 testfixtures
-googletrans-3.1.0a0
-grpcio
-grpcio-tools
+fastapi
+uvicorn
+dash
+peewee

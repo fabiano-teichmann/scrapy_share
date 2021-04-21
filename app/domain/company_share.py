@@ -1,33 +1,20 @@
 from datetime import date
 from datetime import timedelta
 
-from googletrans import Translator
 from logger import logger
 
 from app.domain.company import Company
 from app.domain.get_shares import GetShares
-from app.models.connect_db import connect_mongodb
-from app.models.models import ShareModel
+from app.models.company import ShareModel
 
 
 class CompanyShare:
     def __init__(self, symbol: str, country: str, date_start: str = '01/01/2010'):
-        connect_mongodb()
         self.symbol = symbol
         self.country = country
         self.date_start = date_start
         self.share = GetShares(self.country)
         self.today = date.today()
-        self.translator = Translator()
-
-    def _translate_description(self, text: str, language='pt'):
-        try:
-            if text:
-                return self.translator.translate(text=text, dest=language).text
-            return ''
-        except Exception as e:
-            logger.error(f"Something unexpected happened in translate ERROR: {e}")
-            return ''
 
     def get_share(self):
         try:
@@ -40,7 +27,7 @@ class CompanyShare:
                     first_date = ShareModel.objects(name=self.symbol).first()
                     if last_date:
                         company.save({'description':  profile, 'updated_at': last_date, 'country': self.country,
-                                      'description_pt': self._translate_description(profile), 'currency': currency,
+                                      'currency': currency,
                                       'initial_date': first_date.date})
                         logger.info(f"New Company {self.symbol} add")
                 return 1
