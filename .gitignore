@@ -276,7 +276,7 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
-
+db_example/
 # profiling data
 .prof
 

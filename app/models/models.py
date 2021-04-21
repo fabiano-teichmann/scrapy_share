@@ -4,7 +4,6 @@ from mongoengine import Document, StringField, FloatField, DateField, queryset_m
 class CompanyModel(Document):
     name = StringField(required=True, unique=True)
     description = StringField(required=False, default='')
-    description_pt = StringField(required=False, default='')
     updated_at = DateField(required=False)
     initial_date = DateField(required=False)
     country = StringField()
