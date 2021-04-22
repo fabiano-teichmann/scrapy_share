@@ -3,11 +3,11 @@ from datetime import date
 from mongoengine import Q
 from starlette.responses import JSONResponse
 
-from app.models.models import CompanyModel
+from app.models.models import CompanyModel, ShareModel
 
 
 def get_list_companies(country: str):
-    qs = CompanyModel.get_company(country=country)
+    qs = CompanyModel.get_company(name=country)
     company = []
     if qs:
         for q in qs:

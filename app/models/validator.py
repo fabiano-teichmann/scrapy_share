@@ -11,6 +11,9 @@ class ShareValidator(BaseModel):
     close: float
     average: float
 
+    class Config:
+        orm_mode = True
+
 
 class CompanyValidator(BaseModel):
     name: str
@@ -25,3 +28,6 @@ class CompanyValidator(BaseModel):
         if v:
             return v.capitalize()
         return v
+
+    class Config:
+        orm_mode = True
